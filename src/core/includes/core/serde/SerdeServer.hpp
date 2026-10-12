@@ -19,7 +19,7 @@
 #include <system_error>
 #include <vector>
 
-#include <core/serde/Tag.hpp>
+#include <core/functions/Tag.hpp>
 #include <core/serde/SerdeADT.hpp>
 #include <core/serde/SerdeEngine.hpp>
 

@@ -15,12 +15,20 @@ else()
 	set(PrismCoreLibraryType STATIC)
 endif()
 
-add_library(Common INTERFACE)
-target_include_directories(Common INTERFACE
+add_library(Common ${PrismCoreLibraryType}
+	sources/common/Error.cpp
+	sources/common/Assert.cpp
+)
+set_target_properties(Common PROPERTIES
+	OUTPUT_NAME PrismCoreCommon
+	POSITION_INDEPENDENT_CODE ON
+	WINDOWS_EXPORT_ALL_SYMBOLS ON
+)
+target_include_directories(Common PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/includes>
 	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
-target_compile_features(Common INTERFACE cxx_std_23)
+target_compile_features(Common PUBLIC cxx_std_23)
 
 add_library(Container INTERFACE)
 target_link_libraries(Container INTERFACE Common)

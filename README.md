@@ -21,7 +21,7 @@ cmake -S . -B build-shared -DPRISMCORE_BUILD_SHARED_LIBS=ON
 cmake --build build-shared --parallel
 ```
 
-根目录入口与独立 core 入口均支持此选项。Math、Memory 生成静态或动态库，其余模块仍为头文件接口目标；Core::Core 汇总所有模块，不生成独立的整体库文件。
+根目录入口与独立 core 入口均支持此选项。Common、Math、Memory 生成静态或动态库，其余模块仍为头文件接口目标；Core::Core 汇总所有模块，不生成独立的整体库文件。
 
 core 目录可作为完全独立的 CMake 工程，不依赖根目录、tests 或 extern：
 
@@ -101,9 +101,32 @@ cmake -S . -B build -DCMAKE_PREFIX_PATH=/path/to/prismcore-install
 | Core::Container | INTERFACE | Common |
 | Core::Reflect | INTERFACE | Common |
 | Core::Serde | INTERFACE | Reflect |
-| Core::Common | INTERFACE | 公开头文件路径、C++23 |
+| Core::Common | STATIC / SHARED | 错误策略实现、公开头文件路径、C++23 |
 
 所有模块始终启用，暂不提供选择性构建设置，外部通常统一链接 Core::Core。Math 和 Memory 启用位置无关代码，并设置 Windows 自动符号导出；Math 当前仍为占位实现，部分工具链会提示其静态库没有全局符号。头文件模块没有独立二进制产物。
+
+## 错误与断言
+
+[Error.hpp](src/core/includes/core/common/Error.hpp) 提供全局 EErrorCode 和 Error；[Assert.hpp](src/core/includes/core/common/Assert.hpp) 提供共享 ErrorPolicy 与 UI_CHECK、UI_ASSERT、UI_VERIFY、UI_FATAL。它们由 Common 总头文件和 Core 总头文件导出，单独使用时链接 Core::Common 即可。
+
+```cmake
+target_link_libraries(MyApp PRIVATE Core::Common)
+```
+
+```cpp
+#include <core/common/Assert.hpp>
+
+void setVolume(int volume)
+{
+	UI_CHECK(volume >= 0, EErrorCode::InvalidArgument, "negative volume");
+}
+```
+
+Error 保留消息、错误码和调用点 source_location。UI_CHECK 始终求值，失败默认抛出 Error。UI_ASSERT 在未定义 NDEBUG 时检查，默认输出位置与消息后 abort；定义 NDEBUG 时不求值条件。UI_VERIFY 始终求值，Debug 下与断言相同。UI_FATAL 默认记录后 abort。
+
+errorPolicy() 的回调可在程序初始化阶段覆盖；修改策略时必须自行同步并发访问。自定义 OnAssert 可以返回；OnError 返回或为空时仍会抛出 Error，OnFatal 返回或为空时仍会终止。回调抛出的异常会直接传播。
+
+Tag 是 functions 中的通用点分路径类型，通过 core/functions/Tag.hpp 包含，不再位于 serde 目录。此次迁移保持其现有行为，getFirstSameRoot 仍为未实现接口。
 
 ## 内存分配器
 
@@ -161,7 +184,7 @@ UAF quarantine 需要同时启用 DEBUG_GUARDS 和 UAF_DETECTION。这些宏由 
 | [SerdeReflect.hpp](src/core/includes/core/serde/SerdeReflect.hpp) | 反射驱动的 toAdt/fromAdt 转换 |
 | [SerdeEngine.hpp](src/core/includes/core/serde/SerdeEngine.hpp) | JSON/TOML 格式引擎 |
 | [SerdeServer.hpp](src/core/includes/core/serde/SerdeServer.hpp) | 文件、目录与工作区服务 |
-| [Tag.hpp](src/core/includes/core/serde/Tag.hpp) | 点分路径标签 |
+| [Tag.hpp](src/core/includes/core/functions/Tag.hpp) | 通用点分路径标签，位于 functions |
 | [Serde.hpp](src/core/includes/core/serde/Serde.hpp) | 反射与序列化统一入口 |
 
 只使用反射时链接 Core::Reflect 并包含 core/reflect/Reflect.hpp。运行时反射保留以 SerdeADT 传递参数与返回值的原 API，使用 serde 中的 ADT 与转换层，但不会包含 JSON/TOML 解析器。
@@ -203,7 +226,7 @@ ctest --test-dir build-tests --output-on-failure
 
 测试覆盖反射元信息、对象生命周期、继承字段与方法、ADT 与 JSON/TOML 往返、JSON 二进制与日期值、文件服务及错误路径。原复杂对象示例保留在 [ReflectSerdeDemo.cpp](tests/ReflectSerdeDemo.cpp)，作为可选测试目标运行。
 
-内存测试保留原分配器回归与使用示例，并增加 core 队列满/空、环回绕、多生产者多消费者逐项唯一性，以及 quarantine 超容量和并发 flush 测试。测试入口共六个 CTest 目标。quarantine 专项在诊断关闭时跳过其检查，Debug 配置用于执行该项实际检测。已在 macOS 验证 Debug 静态、Debug 动态与 Release 静态配置，并验证静态/动态安装包及独立 core 消费；Windows 和 Linux 尚未运行验证。
+内存测试保留原分配器回归与使用示例，并增加 core 队列满/空、环回绕、多生产者多消费者逐项唯一性，以及 quarantine 超容量和并发 flush 测试。测试入口共七个 CTest 目标，包含 Tag 路径与 Error/Assert 策略、调用位置、宏求值行为回归。quarantine 专项在诊断关闭时跳过其检查，Debug 配置用于执行该项实际检测。已在 macOS 验证 Debug 静态、Debug 动态、Release 静态与 Release 动态配置，并验证静态/动态安装包及独立 core 消费；Windows 和 Linux 尚未运行验证。
 
 ## macOS 工具链
 

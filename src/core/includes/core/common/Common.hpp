@@ -5,7 +5,8 @@
 #include "Platform.hpp"
 #include "Debug.hpp"
 #include "SMFControl.hpp"
-#include "ExceptionHandler.hpp"
+#include "Assert.hpp"
+#include "Error.hpp"
 #include "STLInterface.hpp"
 #include "Global.hpp"
 

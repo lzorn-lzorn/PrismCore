@@ -3,6 +3,10 @@ target_link_libraries(PrismCoreTests PRIVATE Core::Core Catch2::Catch2WithMain)
 
 add_test(NAME PrismCoreTests COMMAND PrismCoreTests)
 
+add_executable(PrismCoreCommonTests CommonTests.cpp)
+target_link_libraries(PrismCoreCommonTests PRIVATE Core::Common Catch2::Catch2WithMain)
+add_test(NAME PrismCoreCommonTests COMMAND PrismCoreCommonTests)
+
 add_executable(PrismCoreReflectTests ReflectTests.cpp)
 target_link_libraries(PrismCoreReflectTests PRIVATE Core::Reflect Catch2::Catch2WithMain)
 add_test(NAME PrismCoreReflectTests COMMAND PrismCoreReflectTests)

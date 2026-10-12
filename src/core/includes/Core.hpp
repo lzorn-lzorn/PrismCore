@@ -4,7 +4,8 @@
 #include "core/common/AtomicShared.hpp"
 #include "core/common/Common.hpp"
 #include "core/common/Debug.hpp"
-#include "core/common/ExceptionHandler.hpp"
+#include "core/common/Assert.hpp"
+#include "core/common/Error.hpp"
 #include "core/common/Global.hpp"
 #include "core/common/MarcoArgsNum.hpp"
 #include "core/common/Platform.hpp"
@@ -18,6 +19,7 @@
 
 // ---------- Functions: 句柄管理 ----------
 #include "core/functions/HandleManager.hpp"
+#include "core/functions/Tag.hpp"
 
 // ---------- Math: 数学库 ----------
 #include "core/math/Color.hpp"

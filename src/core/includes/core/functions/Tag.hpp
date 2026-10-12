@@ -2,8 +2,8 @@
 // Created by Lzorn on 2026/10/1.
 //
 
-#ifndef CORE_SERDE_TAG_HPP
-#define CORE_SERDE_TAG_HPP
+#ifndef CORE_FUNCTIONS_TAG_HPP
+#define CORE_FUNCTIONS_TAG_HPP
 
 #include <algorithm>
 #include <cstddef>    // size_t / std::ptrdiff_t
@@ -142,4 +142,4 @@ struct std::hash<core::Tag>
         return Result;
     }
 };
-#endif // CORE_SERDE_TAG_HPP
+#endif // CORE_FUNCTIONS_TAG_HPP
