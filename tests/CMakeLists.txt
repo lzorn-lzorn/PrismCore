@@ -1,0 +1,26 @@
+add_executable(PrismCoreTests BuildSmoke.cpp ReflectSerdeTests.cpp MemoryQueueTests.cpp)
+target_link_libraries(PrismCoreTests PRIVATE Core::Core Catch2::Catch2WithMain)
+
+add_test(NAME PrismCoreTests COMMAND PrismCoreTests)
+
+add_executable(PrismCoreReflectTests ReflectTests.cpp)
+target_link_libraries(PrismCoreReflectTests PRIVATE Core::Reflect Catch2::Catch2WithMain)
+add_test(NAME PrismCoreReflectTests COMMAND PrismCoreReflectTests)
+
+add_executable(PrismCoreReflectSerdeDemo ReflectSerdeDemo.cpp)
+target_link_libraries(PrismCoreReflectSerdeDemo PRIVATE Core::Serde)
+add_test(NAME PrismCoreReflectSerdeDemo COMMAND PrismCoreReflectSerdeDemo)
+
+add_executable(PrismCoreMemoryTests MemoryAllocatorTests.cpp)
+target_link_libraries(PrismCoreMemoryTests PRIVATE Core::Memory)
+add_test(NAME PrismCoreMemoryTests COMMAND PrismCoreMemoryTests)
+set_tests_properties(PrismCoreMemoryTests PROPERTIES TIMEOUT 180)
+
+add_executable(PrismCoreMemoryExample MemoryAllocatorExample.cpp)
+target_link_libraries(PrismCoreMemoryExample PRIVATE Core::Memory)
+add_test(NAME PrismCoreMemoryExample COMMAND PrismCoreMemoryExample)
+
+add_executable(PrismCoreMemoryQuarantineTests MemoryQuarantineTests.cpp)
+target_link_libraries(PrismCoreMemoryQuarantineTests PRIVATE Core::Memory Catch2::Catch2WithMain)
+add_test(NAME PrismCoreMemoryQuarantineTests COMMAND PrismCoreMemoryQuarantineTests)
+set_tests_properties(PrismCoreMemoryQuarantineTests PROPERTIES TIMEOUT 120)
