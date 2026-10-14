@@ -32,6 +32,8 @@ target_include_directories(Common PUBLIC
 target_compile_features(Common PUBLIC cxx_std_23)
 if(WIN32)
 	target_link_libraries(Common PRIVATE ole32)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	target_link_libraries(Common PRIVATE uuid)
 endif()
 
 add_library(Container INTERFACE)

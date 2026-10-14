@@ -103,7 +103,7 @@ struct GId
     constexpr GId(uint32_t InA, uint32_t InB, uint32_t InC, uint32_t InD) noexcept
         : A(InA), B(InB), C(InC), D(InD) {}
 
-    // 生成一个新的唯一 GId(Windows 走 CoCreateGuid, 其它平台回退到随机数).
+    // 生成一个新的唯一 GId(Windows: CoCreateGuid; Linux/macOS: uuid_generate; 其余平台回退随机数).
     static GId makeGuid();
 
     // 非全零即为有效.
