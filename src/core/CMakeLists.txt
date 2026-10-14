@@ -18,6 +18,7 @@ endif()
 add_library(Common ${PrismCoreLibraryType}
 	sources/common/Error.cpp
 	sources/common/Assert.cpp
+	sources/common/GId.cpp
 )
 set_target_properties(Common PROPERTIES
 	OUTPUT_NAME PrismCoreCommon
@@ -29,6 +30,9 @@ target_include_directories(Common PUBLIC
 	$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 target_compile_features(Common PUBLIC cxx_std_23)
+if(WIN32)
+	target_link_libraries(Common PRIVATE ole32)
+endif()
 
 add_library(Container INTERFACE)
 target_link_libraries(Container INTERFACE Common)

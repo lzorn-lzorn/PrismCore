@@ -1,7 +1,10 @@
 #pragma once 
 
-#include <cstdint>
 #include <atomic>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <string>
 #include <string_view>
 namespace core
 {
@@ -87,4 +90,82 @@ inline std::atomic<uint64_t> GNextHandleId { 0 };
 #define CORE_CONCAT_IMPL(a, b) a##b
 #define CORE_CONCAT(a, b)      CORE_CONCAT_IMPL(a, b)
 
-}
+// GId: 128 位全局唯一标识符, 参考 UE FGuid 设计.
+// 布局: A/B/C/D 四个 uint32, 与 Windows GUID 的 Data1 / Data2 / Data3 / Data4 一一对应.
+struct GId
+{
+    uint32_t A{0};
+    uint32_t B{0};
+    uint32_t C{0};
+    uint32_t D{0};
+
+    constexpr GId() noexcept = default;
+    constexpr GId(uint32_t InA, uint32_t InB, uint32_t InC, uint32_t InD) noexcept
+        : A(InA), B(InB), C(InC), D(InD) {}
+
+    // 生成一个新的唯一 GId(Windows 走 CoCreateGuid, 其它平台回退到随机数).
+    static GId makeGuid();
+
+    // 非全零即为有效.
+    [[nodiscard]] constexpr bool isValid() const noexcept { return (A | B | C | D) != 0; }
+    void invalidate() noexcept { A = B = C = D = 0; }
+
+    // 转为 "XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"(可选大括号).
+    [[nodiscard]] std::string toString(bool WithBraces = false) const;
+
+    // 从字符串解析(容忍可选大括号与连字符); 失败返回 false 且不改动 OutGuid.
+    static bool parse(std::string_view Text, GId& OutGuid);
+
+    [[nodiscard]] constexpr bool operator==(const GId& Other) const noexcept
+    {
+        return A == Other.A && B == Other.B && C == Other.C && D == Other.D;
+    }
+    [[nodiscard]] constexpr bool operator!=(const GId& Other) const noexcept { return !(*this == Other); }
+
+    // 字典序比较, 供有序容器使用.
+    [[nodiscard]] constexpr bool operator<(const GId& Other) const noexcept
+    {
+        if (A != Other.A) return A < Other.A;
+        if (B != Other.B) return B < Other.B;
+        if (C != Other.C) return C < Other.C;
+        return D < Other.D;
+    }
+
+    [[nodiscard]] constexpr uint32_t operator[](std::size_t Index) const noexcept
+    {
+        switch (Index)
+        {
+        case 0: return A;
+        case 1: return B;
+        case 2: return C;
+        default: return D;
+        }
+    }
+    [[nodiscard]] uint32_t& operator[](std::size_t Index) noexcept
+    {
+        switch (Index)
+        {
+        case 0: return A;
+        case 1: return B;
+        case 2: return C;
+        default: return D;
+        }
+    }
+
+    // 哈希: 与 UE GetTypeHash(FGuid) 一致, 四个分量的异或.
+    [[nodiscard]] constexpr uint32_t getHash() const noexcept { return A ^ B ^ C ^ D; }
+};
+
+} // namespace core
+
+namespace std
+{
+template <>
+struct hash<core::GId>
+{
+    std::size_t operator()(const core::GId& Id) const noexcept
+    {
+        return static_cast<std::size_t>(Id.getHash());
+    }
+};
+} // namespace std
